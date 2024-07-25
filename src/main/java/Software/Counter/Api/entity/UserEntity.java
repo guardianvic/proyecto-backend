@@ -3,9 +3,7 @@ package Software.Counter.Api.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-
-import java.util.Date;
-
+import java.sql.Date;
 
 
 @Getter
