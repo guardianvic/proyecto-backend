@@ -40,4 +40,6 @@ public class UserDto {
 
     @NotNull
     private Long rolId;
+
+    private String titulo;
 }

@@ -3,6 +3,7 @@ package Software.Counter.Api.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+
 import java.sql.Date;
 
 
@@ -39,9 +40,17 @@ public class UserEntity {
 
     @Column(name = "fecha_de_creacion")
     private Date fechaDeCreacion;
-
+    /*
     @Column(name = "rol_id")
-    private Long rolId;
+    private Long rolId; */
+
+
+    @Setter
+    @Getter
+    @ManyToOne
+    @JoinColumn(name = "rol_id", nullable = false, updatable = false)
+    private RolEntity rolEntities;
+
 
 
 }

@@ -1,15 +1,21 @@
 package Software.Counter.Api.service;
 
 import Software.Counter.Api.dto.UserDto;
+import Software.Counter.Api.entity.RolEntity;
 import Software.Counter.Api.entity.UserEntity;
+import Software.Counter.Api.exception.EmailNotValidException;
+import Software.Counter.Api.exception.ResourceNotFoundException;
 import Software.Counter.Api.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
+import static Software.Counter.Api.dto.UserDto.*;
 
 
 @Service
@@ -20,7 +26,29 @@ public class UserService {
         this.repository = repository;
     }
 
+    @Autowired
+    private RolService rolService;
+
+    public boolean validateByEmail(String email){
+        UserEntity entity = this.repository.findByEmail(email);
+        if (Objects.isNull(entity)){
+            return false;
+        }
+
+        return true;
+
+    }
+
     public UserDto create(UserDto dto){
+        // no se puede registrar un usuario con un correo registrado
+        if(validateByEmail(dto.getEmail())){
+            throw new EmailNotValidException();
+        }
+        // no se puede registrar un usuario sin un rol previamente registrado
+        if(!rolService.existRolById(dto.getRolId())){
+            throw new ResourceNotFoundException();
+
+        }
 
         UserEntity entity = new UserEntity();
         entity.setNombre(dto.getNombre());
@@ -30,7 +58,13 @@ public class UserService {
         entity.setUsuario(dto.getUsuario());
         entity.setPassword("1234");
         entity.setFechaDeCreacion(dto.getFechaDeCreacion());
-        entity.setRolId(dto.getRolId());
+        RolEntity rolEntity = new RolEntity();
+        rolEntity.setId(dto.getRolId());
+
+        entity.setRolEntities(rolEntity);
+
+
+        //entity.setRolId(dto.getRolId());
 
        entity = repository.save(entity);
 
@@ -46,7 +80,7 @@ public class UserService {
         List<UserDto> dtos = new ArrayList<>();
 
         for (UserEntity entity : entities) {
-            UserDto dto = UserDto.builder()
+            UserDto dto = builder()
                     .id(entity.getId())
                     .nombre(entity.getNombre())
                     .apellido(entity.getApellido())
@@ -54,7 +88,8 @@ public class UserService {
                     .telefono(entity.getTelefono())
                     .usuario(entity.getUsuario())
                     .fechaDeCreacion(entity.getFechaDeCreacion())
-                    .rolId(entity.getRolId())
+                    .rolId(entity.getRolEntities().getId())
+                    .titulo(entity.getRolEntities().getTitulo())
                     .build();
             dtos.add(dto);
 
@@ -75,7 +110,7 @@ public class UserService {
                 .telefono(entity.getTelefono())
                 .usuario(entity.getUsuario())
                 .fechaDeCreacion(entity.getFechaDeCreacion())
-                .rolId(entity.getRolId())
+                .rolId(Long.valueOf(entity.getRolEntities().getTitulo()))
                 .build();
 
         return dto;
@@ -113,7 +148,11 @@ public class UserService {
         entity.setTelefono(newData.getTelefono());
         entity.setUsuario(newData.getUsuario());
         entity.setFechaDeCreacion(newData.getFechaDeCreacion());
-        entity.setRolId(newData.getRolId());
+
+        RolEntity rolEntity = new RolEntity();
+        rolEntity.setId(newData.getRolId());
+        entity.setRolEntities(rolEntity);
+        //entity.setRolId(newData.getRolId());
 
         this.repository.save(entity);
 
